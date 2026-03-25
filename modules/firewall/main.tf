@@ -54,6 +54,16 @@ resource "azurerm_firewall_nat_rule_collection" "dnat" {
     translated_address = var.appgateway_private_ip
     translated_port = "443"
   }
+
+  rule {
+    name                  = "ssh-to-vm"
+    protocols             = ["TCP"]
+    source_addresses      = ["*"]
+    destination_addresses = [azurerm_public_ip.firewall.ip_address]
+    destination_ports     = ["22"]
+    translated_address    = "10.0.3.4"
+    translated_port       = "22"
+  }
 }
 
 # Network Rules for outbound traffic
