@@ -156,6 +156,7 @@ resource "azurerm_application_gateway" "main" {
     protocol              = "Http"
     request_timeout       = 60
     probe_name            = "web-health-probe"
+    host_name = "localhost"
 
     connection_draining {
       enabled           = true
@@ -166,8 +167,8 @@ resource "azurerm_application_gateway" "main" {
   probe {
     name                = "web-health-probe"
     protocol            = "Http"
-    host                = "127.0.0.1"
-    path                = "/health"
+    host                = "localhost"
+    path                = "/"
     interval            = 30
     timeout             = 20
     unhealthy_threshold = 3
@@ -197,13 +198,38 @@ resource "azurerm_application_gateway" "main" {
     }
   }
 
-  request_routing_rule {
-    name                       = "http-to-backend"
-    rule_type                  = "Basic"
-    http_listener_name         = "http-listener"
-    backend_address_pool_name  = "web-backend-pool"
-    backend_http_settings_name = "web-http-settings"
-    priority                   = 100
+  dynamic "redirect_configuration" {
+    for_each = var.appgateway_pfx_path != "" ? [1] : []
+    content {
+      name                 = "http-to-https-redirect"
+      redirect_type        = "Permanent"
+      target_listener_name = "https-listener"
+      include_path         = true
+      include_query_string = true
+    }
+  }
+
+  dynamic "request_routing_rule" {
+    for_each = var.appgateway_pfx_path == "" ? [1] : []
+    content {
+      name                       = "http-to-backend"
+      rule_type                  = "Basic"
+      http_listener_name         = "http-listener"
+      backend_address_pool_name  = "web-backend-pool"
+      backend_http_settings_name = "web-http-settings"
+      priority                   = 100
+    }
+  }
+
+  dynamic "request_routing_rule" {
+    for_each = var.appgateway_pfx_path != "" ? [1] : []
+    content {
+      name                        = "http-redirect-to-https"
+      rule_type                   = "Basic"
+      http_listener_name          = "http-listener"
+      redirect_configuration_name = "http-to-https-redirect"
+      priority                    = 100
+    }
   }
 
   dynamic "request_routing_rule" {

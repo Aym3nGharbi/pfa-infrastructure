@@ -1,0 +1,57 @@
+name: Deploy Site On VM
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/deploy.yml
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy on VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            set -e
+
+            APP_DIR="/var/www/pfa-site-src"
+            PUBLISH_DIR="/var/www/pfa-app"
+            BRANCH="main"
+
+            if [ -d "$APP_DIR/.git" ]; then
+              cd "$APP_DIR"
+              git fetch --all
+              git reset --hard "origin/$BRANCH"
+            else
+              sudo mkdir -p "$APP_DIR"
+              sudo chown -R "$USER":"$USER" "$APP_DIR"
+              git clone "${{ secrets.SITE_REPO_URL }}" "$APP_DIR"
+              cd "$APP_DIR"
+              git checkout "$BRANCH"
+            fi
+
+            if [ -f "*.sln" ]; then
+              SLN_FILE=$(ls *.sln | head -n 1)
+              dotnet restore "$SLN_FILE"
+              dotnet publish "$SLN_FILE" -c Release -o "$PUBLISH_DIR"
+            else
+              CSPROJ_FILE=$(find . -maxdepth 3 -name "*.csproj" | head -n 1)
+              if [ -z "$CSPROJ_FILE" ]; then
+                echo "No .csproj file found in repository."
+                exit 1
+              fi
+              dotnet restore "$CSPROJ_FILE"
+              dotnet publish "$CSPROJ_FILE" -c Release -o "$PUBLISH_DIR"
+            fi
+
+            sudo systemctl restart kestrel-pfa.service
+            sudo systemctl restart nginx
+            sudo systemctl --no-pager --full status kestrel-pfa.service | head -n 20

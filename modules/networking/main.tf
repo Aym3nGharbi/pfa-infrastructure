@@ -176,9 +176,21 @@ resource "azurerm_network_security_group" "web" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "10.0.5.0/24"
+    source_address_prefix = "172.16.0.0/24"
     destination_address_prefix = "*"
   }
+
+  security_rule {
+  name                       = "Allow-HTTP-From-VPN"
+  priority                   = 105
+  direction                  = "Inbound"
+  access                     = "Allow"
+  protocol                   = "Tcp"
+  source_port_range          = "*"
+  destination_port_range     = "80"
+  source_address_prefix      = "172.16.0.0/24"
+  destination_address_prefix = "*"
+}
 
   security_rule {
     name                       = "Deny-All-Inbound"
