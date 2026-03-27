@@ -29,8 +29,14 @@ jobs:
       - name: Verify Juice Shop health via local endpoint
         run: |
           set -e
-          sleep 10
-          curl -fsS http://127.0.0.1:3000/ > /dev/null
+          for i in $(seq 1 24); do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Juice Shop health check failed after retries"
+          exit 1
 
       - name: Show running container
         run: docker ps --filter "name=juice-shop"
