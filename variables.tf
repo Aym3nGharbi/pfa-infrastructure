@@ -56,5 +56,18 @@ variable "admin_password" {
 variable "app_port" {
   description = "Port the web application listens on"
   type        = number
-  default     = 80
+  default     = 3000
+}
+
+variable "appgateway_pfx_path" {
+  description = "Path to a PFX certificate file for Application Gateway HTTPS"
+  type        = string
+  default     = ""
+}
+
+variable "appgateway_pfx_password" {
+  description = "Password for the PFX certificate used by Application Gateway HTTPS"
+  type        = string
+  default     = ""
+  sensitive   = true
 }

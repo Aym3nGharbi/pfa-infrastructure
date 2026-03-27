@@ -169,6 +169,18 @@ resource "azurerm_network_security_group" "web" {
   }
 
   security_rule {
+    name                       = "Allow-AppPort3000-From-AppGateway"
+    priority                   = 101
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3000"
+    source_address_prefix      = var.subnet_cidrs.appgateway
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
     name                       = "Allow-SSH-From-VPN"
     priority                   = 110
     direction                  = "Inbound"
@@ -176,21 +188,21 @@ resource "azurerm_network_security_group" "web" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix = "172.16.0.0/24"
+    source_address_prefix      = "172.16.0.0/24"
     destination_address_prefix = "*"
   }
 
   security_rule {
-  name                       = "Allow-HTTP-From-VPN"
-  priority                   = 105
-  direction                  = "Inbound"
-  access                     = "Allow"
-  protocol                   = "Tcp"
-  source_port_range          = "*"
-  destination_port_range     = "80"
-  source_address_prefix      = "172.16.0.0/24"
-  destination_address_prefix = "*"
-}
+    name                       = "Allow-HTTP-From-VPN"
+    priority                   = 105
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "172.16.0.0/24"
+    destination_address_prefix = "*"
+  }
 
   security_rule {
     name                       = "Deny-All-Inbound"
@@ -255,22 +267,22 @@ resource "azurerm_subnet_network_security_group_association" "data" {
 
 # Route table — force web subnet traffic through Azure Firewall
 #resource "azurerm_route_table" "web" {
- # name                          = "${var.prefix}-web-rt"
-  #location                      = var.location
-  #resource_group_name           = var.resource_group_name
-  #bgp_route_propagation_enabled = false
-  #tags                          = var.tags
+# name                          = "${var.prefix}-web-rt"
+#location                      = var.location
+#resource_group_name           = var.resource_group_name
+#bgp_route_propagation_enabled = false
+#tags                          = var.tags
 
-  #route {
-   # name                   = "force-to-firewall"
-    #address_prefix         = "0.0.0.0/0"
-    #next_hop_type          = "VirtualAppliance"
-    #next_hop_in_ip_address = var.firewall_private_ip
-  #}
+#route {
+# name                   = "force-to-firewall"
+#address_prefix         = "0.0.0.0/0"
+#next_hop_type          = "VirtualAppliance"
+#next_hop_in_ip_address = var.firewall_private_ip
+#}
 #}
 
 #resource "azurerm_subnet_route_table_association" "web" {
- # subnet_id      = azurerm_subnet.web.id
-  #route_table_id = azurerm_route_table.web.id
+# subnet_id      = azurerm_subnet.web.id
+#route_table_id = azurerm_route_table.web.id
 #}
 

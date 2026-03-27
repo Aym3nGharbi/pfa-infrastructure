@@ -3,7 +3,7 @@ output "appgateway_public_ip" {
 }
 
 output "appgateway_private_ip" {
-  value = "10.0.2.10"  # Static private IP
+  value = "10.0.2.10" # Static private IP
 }
 
 output "appgateway_id" {

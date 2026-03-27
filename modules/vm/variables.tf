@@ -45,7 +45,7 @@ variable "zone" {
 variable "app_port" {
   description = "Port the web application listens on"
   type        = number
-  default     = 80
+  default     = 3000
 }
 
 variable "tags" {

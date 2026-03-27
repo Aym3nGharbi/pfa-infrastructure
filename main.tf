@@ -46,9 +46,9 @@ module "firewall" {
   prefix              = var.prefix
   tags                = var.tags
 
-  firewall_subnet_id   = module.networking.subnet_firewall_id
+  firewall_subnet_id    = module.networking.subnet_firewall_id
   appgateway_private_ip = module.appgateway.appgateway_private_ip
-  vm_subnet_cidr       = "10.0.3.0/24"
+  vm_subnet_cidr        = "10.0.3.0/24"
 }
 
 # ============================================
@@ -88,12 +88,12 @@ module "vm" {
   prefix              = var.prefix
   tags                = var.tags
 
-  subnet_web_id   = module.networking.subnet_web_id
-  vm_size         = var.vm_size
-  admin_username  = var.admin_username
-  admin_password  = var.admin_password
-  zone            = var.zone
-  app_port        = var.app_port
+  subnet_web_id  = module.networking.subnet_web_id
+  vm_size        = var.vm_size
+  admin_username = var.admin_username
+  admin_password = var.admin_password
+  zone           = var.zone
+  app_port       = var.app_port
 }
 
 # ============================================
@@ -107,10 +107,12 @@ module "appgateway" {
   prefix              = var.prefix
   tags                = var.tags
 
-  subnet_appgateway_id = module.networking.subnet_appgateway_id
-  vm_private_ip        = module.vm.vm_private_ip
-  app_port             = var.app_port
-  zone                 = var.zone
+  subnet_appgateway_id    = module.networking.subnet_appgateway_id
+  vm_private_ip           = module.vm.vm_private_ip
+  app_port                = var.app_port
+  zone                    = var.zone
+  appgateway_pfx_path     = var.appgateway_pfx_path
+  appgateway_pfx_password = var.appgateway_pfx_password
 }
 
 # ============================================
@@ -138,8 +140,8 @@ module "keyvault" {
   prefix              = var.prefix
   tags                = var.tags
 
-  tenant_id        = data.azurerm_client_config.current.tenant_id
-  vm_principal_id  = module.vm.vm_identity_principal_id
+  tenant_id       = data.azurerm_client_config.current.tenant_id
+  vm_principal_id = module.vm.vm_identity_principal_id
 }
 
 # ============================================

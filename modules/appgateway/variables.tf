@@ -26,7 +26,7 @@ variable "vm_private_ip" {
 variable "app_port" {
   description = "Port the web application listens on"
   type        = number
-  default     = 80
+  default     = 3000
 }
 
 variable "zone" {
@@ -44,7 +44,7 @@ variable "tags" {
 variable "appgateway_pfx_password" {
   description = "Password for the PFX certificate used by Application Gateway HTTPS"
   type        = string
-  default     = "Pfa1234!"
+  default     = ""
   sensitive   = true
 }
 

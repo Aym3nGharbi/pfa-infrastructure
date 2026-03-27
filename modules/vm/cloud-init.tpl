@@ -7,11 +7,14 @@ packages:
   - curl
   - unzip
   - apt-transport-https
+  - docker.io
+  - docker-compose-v2
 
 runcmd:
-  # Install .NET 8 runtime
-  - curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel 8.0 --runtime aspnetcore --install-dir /usr/share/dotnet
-  - ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet
+  # Enable Docker for application and self-hosted runner workloads
+  - systemctl enable docker
+  - systemctl restart docker
+  - usermod -aG docker azureuser
 
   # Configure Nginx as reverse proxy
   - |

@@ -119,10 +119,10 @@ resource "azurerm_application_gateway" "main" {
   }
 
   frontend_ip_configuration {
-    name                            = "appgateway-private-ip"
-    subnet_id                       = var.subnet_appgateway_id
-    private_ip_address_allocation   = "Static"
-    private_ip_address              = "10.0.2.10"  # Static private IP for DNAT from firewall
+    name                          = "appgateway-private-ip"
+    subnet_id                     = var.subnet_appgateway_id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.2.10" # Static private IP for DNAT from firewall
   }
 
   frontend_port {
@@ -156,7 +156,7 @@ resource "azurerm_application_gateway" "main" {
     protocol              = "Http"
     request_timeout       = 60
     probe_name            = "web-health-probe"
-    host_name = "localhost"
+    host_name             = "localhost"
 
     connection_draining {
       enabled           = true

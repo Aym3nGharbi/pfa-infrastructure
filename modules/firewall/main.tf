@@ -36,23 +36,23 @@ resource "azurerm_firewall_nat_rule_collection" "dnat" {
   action              = "Dnat"
 
   rule {
-    name = "http-to-appgateway"
-    protocols = ["TCP"]
-    source_addresses = ["*"]
+    name                  = "http-to-appgateway"
+    protocols             = ["TCP"]
+    source_addresses      = ["*"]
     destination_addresses = [azurerm_public_ip.firewall.ip_address]
-    destination_ports = ["80"]
-    translated_address = var.appgateway_private_ip
-    translated_port = "80"
+    destination_ports     = ["80"]
+    translated_address    = var.appgateway_private_ip
+    translated_port       = "80"
   }
 
   rule {
-    name = "https-to-appgateway"
-    protocols = ["TCP"]
-    source_addresses = ["*"]
+    name                  = "https-to-appgateway"
+    protocols             = ["TCP"]
+    source_addresses      = ["*"]
     destination_addresses = [azurerm_public_ip.firewall.ip_address]
-    destination_ports = ["443"]
-    translated_address = var.appgateway_private_ip
-    translated_port = "443"
+    destination_ports     = ["443"]
+    translated_address    = var.appgateway_private_ip
+    translated_port       = "443"
   }
 
   rule {
@@ -75,19 +75,19 @@ resource "azurerm_firewall_network_rule_collection" "network" {
   action              = "Allow"
 
   rule {
-    name = "allow-vm-to-internet"
-    protocols = ["TCP", "UDP"]
-    source_addresses = [var.vm_subnet_cidr]
+    name                  = "allow-vm-to-internet"
+    protocols             = ["TCP", "UDP"]
+    source_addresses      = [var.vm_subnet_cidr]
     destination_addresses = ["*"]
-    destination_ports = ["*"]
+    destination_ports     = ["*"]
   }
 
   rule {
-    name = "allow-dns"
-    protocols = ["UDP"]
-    source_addresses = ["*"]
+    name                  = "allow-dns"
+    protocols             = ["UDP"]
+    source_addresses      = ["*"]
     destination_addresses = ["*"]
-    destination_ports = ["53"]
+    destination_ports     = ["53"]
   }
 }
 
@@ -100,9 +100,9 @@ resource "azurerm_firewall_application_rule_collection" "application" {
   action              = "Allow"
 
   rule {
-    name = "allow-github"
+    name             = "allow-github"
     source_addresses = [var.vm_subnet_cidr]
-    target_fqdns = ["github.com", "*.github.com", "api.github.com"]
+    target_fqdns     = ["github.com", "*.github.com", "api.github.com"]
     protocol {
       port = "443"
       type = "Https"
@@ -110,9 +110,9 @@ resource "azurerm_firewall_application_rule_collection" "application" {
   }
 
   rule {
-    name = "allow-microsoft"
+    name             = "allow-microsoft"
     source_addresses = [var.vm_subnet_cidr]
-    target_fqdns = ["*.microsoft.com", "*.azure.com", "*.windows.net"]
+    target_fqdns     = ["*.microsoft.com", "*.azure.com", "*.windows.net"]
     protocol {
       port = "443"
       type = "Https"
@@ -120,13 +120,28 @@ resource "azurerm_firewall_application_rule_collection" "application" {
   }
 
   rule {
-    name = "allow-ubuntu"
+    name             = "allow-ubuntu"
     source_addresses = [var.vm_subnet_cidr]
-    target_fqdns = ["*.ubuntu.com", "*.canonical.com"]
+    target_fqdns     = ["*.ubuntu.com", "*.canonical.com"]
     protocol {
       port = "80"
       type = "Http"
     }
+    protocol {
+      port = "443"
+      type = "Https"
+    }
+  }
+
+  rule {
+    name             = "allow-docker"
+    source_addresses = [var.vm_subnet_cidr]
+    target_fqdns = [
+      "registry-1.docker.io",
+      "auth.docker.io",
+      "production.cloudflare.docker.com",
+      "hub.docker.com"
+    ]
     protocol {
       port = "443"
       type = "Https"
