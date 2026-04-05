@@ -212,3 +212,47 @@ Utilisation recommandée:
 - Considérer `docs/main.pdf` comme la référence documentaire fonctionnelle du projet
 - Garder le `README.md` comme référence technique exécutable (déploiement, exploitation, troubleshooting)
 - Mettre à jour les deux (README + PDF) à chaque évolution importante de l'architecture
+
+## 17) Sommaire du rapport principal (alignement avec `main.pdf`)
+Le PDF principal est structuré comme suit:
+- Introduction générale
+- Chapitre 1: Fondations théoriques et objectifs du projet
+- Chapitre 2: Conception de l'architecture et structure Terraform
+- Chapitre 3: Déploiement, orchestration et mise en production
+- Chapitre 4: Sécurité opérationnelle: Firewall et observabilité
+- Chapitre 5: Tests d'attaque: manuel et automatisé
+- Conclusion générale
+- Bibliographie
+- Appendices
+
+Sous-thèmes clés explicitement présents dans le rapport:
+- Contexte, motivation, contraintes et objectifs
+- Comparaison architecture initiale vs architecture finale
+- Justification des couches de sécurité (WAF, Firewall, NSG)
+- Preuves de déploiement Terraform et CI/CD
+- Domaine, DNS et certificat TLS
+- Validation opérationnelle et monitoring
+- Scénarios de tests offensifs manuels (XSS, SQLi)
+- Scénarios automatisés (scan, SQLi, fuzzing)
+
+## 18) Correspondance rapport ↔ implémentation
+Pour faciliter la lecture du code en parallèle du rapport:
+- Chapitre 2 (architecture/structure Terraform):
+  - `main.tf`
+  - `modules/networking/`
+  - `modules/firewall/`
+  - `modules/appgateway/`
+  - `modules/vpn/`
+  - `modules/vm/`
+  - `modules/cosmosdb/`
+  - `modules/keyvault/`
+- Chapitre 3 (déploiement/CI-CD/TLS):
+  - `.github/workflows/deploy.yml`
+  - `scripts/install_github_runner.sh`
+  - `scripts/gen_appgw_pfx.ps1`
+  - variables TLS dans `variables.tf` (`appgateway_pfx_path`, `appgateway_pfx_password`)
+- Chapitre 4 (sécurité opérationnelle et observabilité):
+  - règles firewall dans `modules/firewall/main.tf`
+  - règles NSG et routage dans `modules/networking/main.tf`
+- Chapitre 5 (tests offensifs):
+  - résultats et preuves consolidés dans `docs/main.pdf`
