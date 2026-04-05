@@ -48,6 +48,8 @@ Key Vault
 .
 ├── .github/workflows/
 │   └── deploy.yml
+├── docs/
+│   └── main.pdf
 ├── modules/
 │   ├── appgateway/
 │   ├── cosmosdb/
@@ -192,9 +194,21 @@ Pré-requis runner:
   - `terraform.tfstate*`
   - `tfplan`
   - certificats/pfx temporaires
+- Commiter `.terraform.lock.hcl`:
+  - ce fichier verrouille les versions exactes des providers
+  - il garantit des plans/apply reproductibles entre machines et CI
 - Garder un `.gitignore` propre
 - Revue avant push (`git status`, `git diff`)
 
 ## 15) Auteurs
 - Projet PFA - Infrastructure Azure Terraform
 - Mainteneur repository: Aym3nGharbi
+
+## 16) Rapport principal (PDF)
+Le rapport principal du projet est versionné ici:
+- `docs/main.pdf`
+
+Utilisation recommandée:
+- Considérer `docs/main.pdf` comme la référence documentaire fonctionnelle du projet
+- Garder le `README.md` comme référence technique exécutable (déploiement, exploitation, troubleshooting)
+- Mettre à jour les deux (README + PDF) à chaque évolution importante de l'architecture
