@@ -23,3 +23,16 @@ variable "tags" {
   default = {}
 }
 
+variable "appgateway_pfx_path" {
+  description = "Optional path to a PFX file to import into Key Vault for App Gateway"
+  type        = string
+  default     = ""
+}
+
+variable "appgateway_pfx_password" {
+  description = "Password for the PFX file to import into Key Vault"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+

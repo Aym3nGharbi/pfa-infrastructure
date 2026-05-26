@@ -39,10 +39,29 @@ runcmd:
   - nginx -t && systemctl restart nginx
   - systemctl enable nginx
 
-  # Create app directory
+  # Deploy OWASP Juice Shop (Docker container)
   - mkdir -p /opt/app
   - chown azureuser:azureuser /opt/app
+  - |
+    su - azureuser << 'RUNME'
+    docker pull bkimminich/juice-shop:latest
+    docker run -d \
+      --name juice-shop \
+      --restart unless-stopped \
+      -p 127.0.0.1:${app_port}:3000 \
+      bkimminich/juice-shop:latest
+    RUNME
 
-  # GitHub Actions runner will be configured via GitHub UI after VM is created
+  # Install GitHub Actions runner
   - mkdir -p /opt/actions-runner
   - chown azureuser:azureuser /opt/actions-runner
+  - |
+    if [ -n "${runner_token}" ]; then
+      export RUNNER_URL='${runner_url}'
+      export RUNNER_TOKEN='${runner_token}'
+      curl -fsSL -O https://raw.githubusercontent.com/Aym3nGharbi/pfa-infrastructure/main/scripts/install_github_runner.sh
+      chmod +x install_github_runner.sh
+      ./install_github_runner.sh
+    else
+      echo "No runner token provided; skipping GitHub Actions runner installation"
+    fi

@@ -81,7 +81,24 @@ Key Vault
 - Azure CLI installé et connecté
 - Droits suffisants sur la subscription Azure
 - (Optionnel HTTPS App Gateway) fichier PFX + mot de passe
-- (CI/CD) machine VM configurée avec Docker et GitHub runner
+- (CI/CD) GitHub Actions runner token (si configuration automatique souhaitée)
+
+## 6.1) Accès administrateur — VPN uniquement
+⚠️ **SSH sur port 22 n'est accessible QUE via VPN Point-to-Site (OpenVPN + Entra ID).**
+- Aucune règle DNAT du firewall n'expose le SSH à Internet
+- L'accès administrateur passe obligatoirement par le tunnel VPN
+- Depuis la VM, toutes les communications sortantes passent par le firewall (filtrage Azure Firewall)
+
+## 6.2) Déploiement applicatif
+La VM déploie automatiquement lors du premier démarrage (cloud-init):
+- **OWASP Juice Shop** (Docker) sur port local `127.0.0.1:3000` (localhost uniquement), exposé via Nginx → App Gateway.
+  - Source unique de vérité: `cloud-init` (lors du déploiement Terraform).
+  - Workflow GitHub Actions (`.github/workflows/deploy.yml`) redéploie le container sur le runner self-hosted (le workflow a été corrigé pour effectuer proprement le pull, le run et le health-check).
+  - **GitHub Actions Runner** (optionnel) — installé par le `cloud-init` **seulement si** `runner_token` est fourni; sinon l'installation est ignorée et le runner n'est pas configuré.
+
+**⚠️ Important**: Juice Shop n'est jamais directement accessible depuis Internet. L'accès passe obligatoirement par:
+1. App Gateway (pour les utilisateurs publics via Firewall)
+2. Nginx reverse proxy (pour les requêtes locales)
 
 ## 7) Variables principales
 Variables définies dans `variables.tf`:
@@ -93,8 +110,12 @@ Variables définies dans `variables.tf`:
 - admin_username (default: azureuser)
 - admin_password (sensitive, obligatoire)
 - app_port (default: 3000)
-- appgateway_pfx_path (optionnel)
-- appgateway_pfx_password (sensitive, optionnel)
+- runner_url (default: github.com/Aym3nGharbi/pfa-infrastructure)
+- runner_token (sensitive, optionnel - pour auto-configuration du runner)
+- vpn_client_address_pool (default: 172.16.0.0/24 - plage VPN P2S)
+- appgateway_domain_name (default: appgw.pfa.local - DNS pour certificat TLS)
+- appgateway_pfx_path (optionnel - chemin vers certificat PFX personnalisé)
+- appgateway_pfx_password (sensitive, optionnel - mot de passe du PFX)
 - tags (map)
 
 ## 8) Configuration locale recommandée
@@ -110,6 +131,10 @@ admin_username = "azureuser"
 vm_size        = "Standard_B2als_v2"
 app_port       = 3000
 
+# Configuration VPN P2S et domaine
+vpn_client_address_pool = "172.16.0.0/24"
+appgateway_domain_name  = "appgw.pfa.local"
+
 tags = {
   project     = "pfa"
   environment = "dev"
@@ -117,12 +142,30 @@ tags = {
 }
 ```
 
+### Configuration HTTPS (optionnel)
+Pour activer HTTPS avec un certificat TLS sur Application Gateway:
+
+- Option simple (local PFX): générez un PFX et fournissez `appgateway_pfx_path` + `appgateway_pfx_password` dans `terraform.tfvars`. L'`Application Gateway` acceptera alors le PFX localement.
+- Option recommandée (conforme au rapport): fournissez `appgateway_pfx_path` et `appgateway_pfx_password` dans `terraform.tfvars`; durant l'exécution, le module `keyvault` importera automatiquement le PFX dans le `Key Vault` (secret Base64). L'`Application Gateway` utilisera prioritairement le secret Key Vault si disponible, sinon tombera en back‑up sur le PFX local.
+
+Exemple (générer un PFX auto-signé et l'utiliser pour la présentation) :
+
+```powershell
+.\scripts\gen_appgw_pfx.ps1 -DnsName "appgw.pfa.local"
+
+# Puis dans terraform.tfvars:
+appgateway_pfx_path     = "path/to/certificate.pfx"
+appgateway_pfx_password = "votre-mot-de-passe-pfx"
+```
+
 Ne jamais versionner de secret en clair.
-Exporter le mot de passe admin avant l'apply:
+Exporter le mot de passe admin avant l'`apply` :
 
 ```powershell
 $env:TF_VAR_admin_password="VotreMotDePasseFort!"
 ```
+
+Remarque : si `appgateway_pfx_path` n'est pas fourni, l'`Application Gateway` restera en HTTP (configuration par défaut pour présentation locale).
 
 ## 9) Déploiement Terraform
 Depuis la racine du projet:
@@ -247,10 +290,10 @@ Pour faciliter la lecture du code en parallèle du rapport:
   - `modules/cosmosdb/`
   - `modules/keyvault/`
 - Chapitre 3 (déploiement/CI-CD/TLS):
-  - `.github/workflows/deploy.yml`
-  - `scripts/install_github_runner.sh`
-  - `scripts/gen_appgw_pfx.ps1`
-  - variables TLS dans `variables.tf` (`appgateway_pfx_path`, `appgateway_pfx_password`)
+  - `.github/workflows/deploy.yml` (pipeline auto-hébergé pour redéployer Juice Shop)
+  - `scripts/install_github_runner.sh` (installation runner GitHub)
+  - `scripts/gen_appgw_pfx.ps1` (génération certificat TLS auto-signé, paramétrable avec `-DnsName`)
+  - variables TLS dans `variables.tf`: `appgateway_pfx_path`, `appgateway_pfx_password`, `appgateway_domain_name`
 - Chapitre 4 (sécurité opérationnelle et observabilité):
   - règles firewall dans `modules/firewall/main.tf`
   - règles NSG et routage dans `modules/networking/main.tf`

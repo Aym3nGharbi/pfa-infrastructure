@@ -26,13 +26,11 @@ resource "azurerm_resource_group" "pfa" {
 module "networking" {
   source = "./modules/networking"
 
-  location            = var.location
-  resource_group_name = azurerm_resource_group.pfa.name
-  prefix              = var.prefix
-  tags                = var.tags
-
-  # La variable firewall_private_ip est une valeur par défaut
-  # Elle sera mise à jour après création du firewall
+  location                = var.location
+  resource_group_name     = azurerm_resource_group.pfa.name
+  prefix                  = var.prefix
+  tags                    = var.tags
+  vpn_client_address_pool = var.vpn_client_address_pool
 }
 
 # ============================================
@@ -94,6 +92,8 @@ module "vm" {
   admin_password = var.admin_password
   zone           = var.zone
   app_port       = var.app_port
+  runner_url     = var.runner_url
+  runner_token   = var.runner_token
 }
 
 # ============================================
@@ -113,6 +113,7 @@ module "appgateway" {
   zone                    = var.zone
   appgateway_pfx_path     = var.appgateway_pfx_path
   appgateway_pfx_password = var.appgateway_pfx_password
+  appgateway_keyvault_secret_id = module.keyvault.appgw_pfx_secret_id
 }
 
 # ============================================
@@ -142,6 +143,8 @@ module "keyvault" {
 
   tenant_id       = data.azurerm_client_config.current.tenant_id
   vm_principal_id = module.vm.vm_identity_principal_id
+  appgateway_pfx_path     = var.appgateway_pfx_path
+  appgateway_pfx_password = var.appgateway_pfx_password
 }
 
 # ============================================

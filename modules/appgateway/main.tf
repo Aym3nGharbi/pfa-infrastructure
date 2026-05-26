@@ -136,7 +136,16 @@ resource "azurerm_application_gateway" "main" {
   }
 
   dynamic "ssl_certificate" {
-    for_each = var.appgateway_pfx_path != "" ? [1] : []
+    for_each = var.appgateway_keyvault_secret_id != "" ? [1] : []
+    content {
+      name                 = "appgw-ssl-cert"
+      key_vault_secret_id  = var.appgateway_keyvault_secret_id
+    }
+  }
+
+  # Fallback: if no Key Vault secret provided, allow local PFX file
+  dynamic "ssl_certificate" {
+    for_each = (var.appgateway_pfx_path != "" && var.appgateway_keyvault_secret_id == "") ? [1] : []
     content {
       name     = "appgw-ssl-cert"
       data     = filebase64(var.appgateway_pfx_path)
@@ -187,7 +196,7 @@ resource "azurerm_application_gateway" "main" {
   }
 
   dynamic "http_listener" {
-    for_each = var.appgateway_pfx_path != "" ? [1] : []
+    for_each = (var.appgateway_keyvault_secret_id != "" || var.appgateway_pfx_path != "") ? [1] : []
     content {
       name                           = "https-listener"
       frontend_ip_configuration_name = "appgateway-frontend-ip"
@@ -199,7 +208,7 @@ resource "azurerm_application_gateway" "main" {
   }
 
   dynamic "redirect_configuration" {
-    for_each = var.appgateway_pfx_path != "" ? [1] : []
+    for_each = (var.appgateway_keyvault_secret_id != "" || var.appgateway_pfx_path != "") ? [1] : []
     content {
       name                 = "http-to-https-redirect"
       redirect_type        = "Permanent"
@@ -210,7 +219,7 @@ resource "azurerm_application_gateway" "main" {
   }
 
   dynamic "request_routing_rule" {
-    for_each = var.appgateway_pfx_path == "" ? [1] : []
+    for_each = (var.appgateway_keyvault_secret_id == "" && var.appgateway_pfx_path == "") ? [1] : []
     content {
       name                       = "http-to-backend"
       rule_type                  = "Basic"
@@ -222,7 +231,7 @@ resource "azurerm_application_gateway" "main" {
   }
 
   dynamic "request_routing_rule" {
-    for_each = var.appgateway_pfx_path != "" ? [1] : []
+    for_each = (var.appgateway_keyvault_secret_id != "" || var.appgateway_pfx_path != "") ? [1] : []
     content {
       name                        = "http-redirect-to-https"
       rule_type                   = "Basic"
@@ -233,7 +242,7 @@ resource "azurerm_application_gateway" "main" {
   }
 
   dynamic "request_routing_rule" {
-    for_each = var.appgateway_pfx_path != "" ? [1] : []
+    for_each = (var.appgateway_keyvault_secret_id != "" || var.appgateway_pfx_path != "") ? [1] : []
     content {
       name                       = "https-to-backend"
       rule_type                  = "Basic"

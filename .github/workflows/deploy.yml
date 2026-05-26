@@ -12,7 +12,6 @@ jobs:
     steps:
       - name: Pull latest Juice Shop image
         run: docker pull bkimminich/juice-shop:latest
-
       - name: Redeploy Juice Shop container
         run: |
           set -e
@@ -20,15 +19,14 @@ jobs:
             docker rm -f juice-shop
           fi
 
+          docker pull bkimminich/juice-shop:latest
+
           docker run -d \
             --name juice-shop \
             --restart unless-stopped \
-            -p 3000:3000 \
+            -p 127.0.0.1:3000:3000 \
             bkimminich/juice-shop:latest
 
-      - name: Verify Juice Shop health via local endpoint
-        run: |
-          set -e
           for i in $(seq 1 24); do
             if curl -fsS http://127.0.0.1:3000/ > /dev/null; then
               exit 0

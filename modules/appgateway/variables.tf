@@ -54,3 +54,9 @@ variable "appgateway_pfx_path" {
   default     = ""
 }
 
+variable "appgateway_keyvault_secret_id" {
+  description = "Optional Key Vault secret ID containing the PFX for Application Gateway"
+  type        = string
+  default     = ""
+}
+
