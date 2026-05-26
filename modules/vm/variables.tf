@@ -48,6 +48,19 @@ variable "app_port" {
   default     = 3000
 }
 
+variable "runner_url" {
+  description = "GitHub repository URL for Actions runner"
+  type        = string
+  default     = "https://github.com/Aym3nGharbi/pfa-infrastructure"
+}
+
+variable "runner_token" {
+  description = "GitHub Actions runner token (optional, can be set post-deployment)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)

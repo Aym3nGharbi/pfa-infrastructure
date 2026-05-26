@@ -45,8 +45,8 @@ variable "tags" {
   default     = {}
 }
 
-#variable "firewall_private_ip" {
-# description = "Private IP of Azure Firewall — used for UDR route table"
-# type        = string
-# default     = "10.0.0.4"
-#}
+variable "vpn_client_address_pool" {
+  description = "Address pool for VPN P2S clients — must match VPN gateway configuration"
+  type        = string
+  default     = "172.16.0.0/24"
+}

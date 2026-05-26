@@ -43,9 +43,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   # Cloud-init script — runs on first boot
-  # Installs .NET, Nginx, and GitHub Actions runner
+  # Installs Nginx, Docker, OWASP Juice Shop, and GitHub Actions runner
   custom_data = base64encode(templatefile("${path.module}/cloud-init.tpl", {
-    app_port = var.app_port
+    app_port     = var.app_port
+    runner_url   = var.runner_url
+    runner_token = var.runner_token
   }))
 
   identity {

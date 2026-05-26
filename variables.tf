@@ -71,3 +71,28 @@ variable "appgateway_pfx_password" {
   default     = ""
   sensitive   = true
 }
+
+variable "runner_url" {
+  description = "GitHub repository URL for GitHub Actions self-hosted runner"
+  type        = string
+  default     = "https://github.com/Aym3nGharbi/pfa-infrastructure"
+}
+
+variable "runner_token" {
+  description = "GitHub Actions runner authentication token (leave empty if configuring manually)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "vpn_client_address_pool" {
+  description = "Address pool for VPN P2S clients — your client device will get an IP from this range"
+  type        = string
+  default     = "172.16.0.0/24"
+}
+
+variable "appgateway_domain_name" {
+  description = "DNS name for Application Gateway HTTPS certificate (e.g., 'appgw.pfa.local')"
+  type        = string
+  default     = "appgw.pfa.local"
+}

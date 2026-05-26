@@ -1,13 +1,20 @@
-param()
+param(
+  [Parameter(Mandatory=$false)]
+  [string]$DnsName = 'appgw.pfa.local'
+)
 
-# Read input JSON from stdin
+# Read input JSON from stdin (if provided)
 $inputJson = [Console]::In.ReadToEnd()
-$input = $inputJson | ConvertFrom-Json
-$password = $input.password
-$dnsName = 'appgw.pfa.local'
+if ($inputJson.Length -gt 0) {
+  $input = $inputJson | ConvertFrom-Json
+  $password = $input.password
+  if ($input.dnsName) { $DnsName = $input.dnsName }
+} else {
+  $password = Read-Host "Enter PFX password"
+}
 
 # Create a temporary certificate in local store
-$cert = New-SelfSignedCertificate -DnsName $dnsName -CertStoreLocation 'Cert:\LocalMachine\My' -NotAfter (Get-Date).AddYears(1) -KeyLength 2048 -KeyExportPolicy Exportable -Type SSLServerAuthentication
+$cert = New-SelfSignedCertificate -DnsName $DnsName -CertStoreLocation 'Cert:\LocalMachine\My' -NotAfter (Get-Date).AddYears(1) -KeyLength 2048 -KeyExportPolicy Exportable -Type SSLServerAuthentication
 if (-not $cert) { Write-Error 'Failed to create self-signed certificate'; exit 1 }
 
 # Export to a temporary PFX

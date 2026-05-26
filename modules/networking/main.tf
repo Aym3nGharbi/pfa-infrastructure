@@ -15,14 +15,6 @@ resource "azurerm_subnet" "firewall" {
   address_prefixes     = [var.subnet_cidrs.firewall]
 }
 
-# Subnet for Firewall Management (OBLIGATOIRE pour Basic SKU)
-# resource "azurerm_subnet" "firewall_mgmt" {
-#   name                 = "AzureFirewallManagementSubnet"
-#   resource_group_name  = var.resource_group_name
-#   virtual_network_name = azurerm_virtual_network.vnet.name
-#   address_prefixes     = [var.subnet_cidrs.firewall_mgmt]
-# }
-
 resource "azurerm_subnet" "gateway" {
   name                 = "GatewaySubnet"
   resource_group_name  = var.resource_group_name
@@ -52,7 +44,6 @@ resource "azurerm_subnet" "data" {
   service_endpoints    = ["Microsoft.AzureCosmosDB"]
 }
 
-# Route Table for web subnet (to route traffic through firewall)
 resource "azurerm_route_table" "web" {
   name                          = "${var.prefix}-web-rt"
   location                      = var.location
@@ -149,7 +140,7 @@ resource "azurerm_network_security_group" "appgateway" {
   }
 }
 
-# NSG — Web subnet
+# NSG — Web sous-réseau
 resource "azurerm_network_security_group" "web" {
   name                = "${var.prefix}-web-nsg"
   location            = var.location
@@ -188,7 +179,7 @@ resource "azurerm_network_security_group" "web" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "172.16.0.0/24"
+    source_address_prefix      = var.vpn_client_address_pool
     destination_address_prefix = "*"
   }
 
@@ -200,7 +191,7 @@ resource "azurerm_network_security_group" "web" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
-    source_address_prefix      = "172.16.0.0/24"
+    source_address_prefix      = var.vpn_client_address_pool
     destination_address_prefix = "*"
   }
 
